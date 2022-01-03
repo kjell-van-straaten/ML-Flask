@@ -11,6 +11,8 @@ app.secret_key = 'courgette'
 #establish connection to db
 db = connect_db()
 account_table = db.Accounts
+machinedata_table = db.MachineData
+
 
 @app.before_request
 def before_request():
@@ -23,6 +25,84 @@ def before_request():
 @app.route('/')
 def index():
   return render_template('landingpage.html')
+
+@app.route('/input_data', methods=['GET', 'POST'])
+def input_data():
+  #/input_data?id=sap123&machine=elektromotor&stroom=45
+  id = request.args.get('id')
+  machine = request.args.get('machine')
+  stroom = request.args.get('stroom')
+  dateTimeObj = datetime.datetime.now()
+  #timestampStr = dateTimeObj.strftime("%d-%b-%Y (%H:%M:%S.%f)")
+  
+  #TODO: predictive model based on stroom
+  if int(stroom) > 50:
+    prediction = True
+    #TODO: notify when True
+
+  else:
+    prediction =  False
+  
+  create_record(machinedata_table, [id, machine, prediction, int(stroom), dateTimeObj])
+  return "data entry succesfull for machine {}".format(id)
+
+
+@app.route('/dashboard')
+def dashboard():
+  last_error_data = list(machinedata_table.aggregate(
+    [
+        {"$match":
+            {
+                'prediction': True
+            }
+        },
+        {
+            "$group":
+            {
+                "_id": '$id',
+                'machine': {"$first": "$machine"},
+                "last_error": {"$max": "$timestamp"} 
+            }
+        }
+    ]))
+  last_error_data = sorted(last_error_data, key=lambda d: d['last_error'], reverse=True) 
+
+  return render_template('dashboard.html', data=last_error_data)  
+
+@app.route('/raw')
+def raw():
+  historic_data = list(machinedata_table.find({}))
+
+  historic_data = sorted(historic_data, key=lambda d: d['timestamp'], reverse=True) 
+
+  return render_template('raw.html', data=historic_data)  
+
+@app.route('/machinedetail', methods=['GET', 'POST'])
+def machine_detail():
+  id = request.args.get('id')
+  print(id)
+
+  if id == None:
+    if request.method == 'POST':
+      id = request.form['id']
+      historic_data = list(machinedata_table.find({"id": id}))
+      historic_data = sorted(historic_data, key=lambda d: d['timestamp'], reverse=True) 
+
+      labels = [i['timestamp'].strftime("%d-%b-%Y (%H:%M:%S.%f)") for i in historic_data]
+      values = [i['stroom'] for i in historic_data]
+
+      return render_template('machinedetail.html', data=historic_data, labels=labels, values=values, machine=id)  
+
+
+    return render_template('machinedetail.html', nodata = True) 
+  
+  else:
+    historic_data = list(machinedata_table.find({"id": id}))
+    historic_data = sorted(historic_data, key=lambda d: d['timestamp'], reverse=True) 
+
+    labels = [i['timestamp'].strftime("%d-%b-%Y (%H:%M:%S.%f)") for i in historic_data]
+    values = [i['stroom'] for i in historic_data]
+    return render_template('machinedetail.html', data=historic_data, labels=labels, values=values, machine=id)
 
 @app.route('/navbar')
 def navbar():

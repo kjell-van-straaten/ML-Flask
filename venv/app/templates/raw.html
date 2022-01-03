@@ -1,0 +1,63 @@
+<html>
+    <head>
+        <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+        <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <!--Bootsrap 4 CDN-->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        
+        <!--Fontawesome CDN-->
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+
+        <!--Custom styles-->
+        <link rel="stylesheet" type="text/css" href="/static/styles.css">
+    </head>
+
+    <body>
+        <div id="navbar"></div>
+
+        <div class="centered_container_title">
+            <p class="table-title">Data stroom:</p>
+        </div>
+        <div class="centered_container_table">
+            <table class="table table-bordered table-hover table-dark">
+                <tr> 
+                    <th scope="col">ID</th>
+                    <th scope="col">Machine</th>
+                    <th scope="col">Stroom</th>
+                    <th scope="col">Storing verwacht?</th>
+                    <th scope="col">Timestamp</th>
+                </tr>
+            {% for row in data %} 
+                <tr>
+                    <th>{{row.id}}</th>  
+                    <th>{{row.machine}}</th>
+                    <th>{{row.stroom}}</th>  
+                    <th>{{row.prediction}}</th>
+                    <th>{{row.timestamp}}</th>               
+                </tr>
+            {%endfor%}
+            </table>
+        </div>
+
+
+        <script>
+            $(function(){
+              $("#navbar").load("/navbar");
+            });
+
+            $(document).ready(function(){
+            $("#myInput").on("keyup", function() {
+                var value = $(this).val().toLowerCase();
+                $("#myList li").filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+            });
+        </script>
+    </body>
+
+
+</html>
