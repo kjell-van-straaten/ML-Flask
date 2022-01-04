@@ -16,10 +16,8 @@ account_table = db.Accounts
 machinedata_table = db.MachineData
 
 #unpickle the created model
-print(dirname(realpath(__file__)))
 UPLOADS_PATH = join(dirname(realpath(__file__)), 'static/classifier.pkl')
 classifier = joblib.load(UPLOADS_PATH)
-
 
 @app.before_request
 def before_request():
@@ -62,44 +60,38 @@ def dashboard():
             {
                 "_id": '$id',
                 'machine': {"$first": "$machine"},
-                "last_error": {"$max": "$timestamp"} 
+                "last_error": {"$max": "$timestamp"}
             }
-        }
+        },
+        {
+          "$sort":{"last_error": -1}
+          }
     ]))
-  last_error_data = sorted(last_error_data, key=lambda d: d['last_error'], reverse=True) 
+
+  for i in last_error_data:
+    i['dif'] = datetime.datetime.now() - i['last_error']
 
   return render_template('dashboard.html', data=last_error_data)  
 
 @app.route('/raw')
 def raw():
-  historic_data = list(machinedata_table.find({}))
-
-  historic_data = sorted(historic_data, key=lambda d: d['timestamp'], reverse=True) 
-
+  historic_data = list(machinedata_table.find().sort([("timestamp", -1)]))
   return render_template('raw.html', data=historic_data)  
 
 @app.route('/machinedetail', methods=['GET', 'POST'])
 def machine_detail():
   id = request.args.get('id')
-
   if id == None:
     if request.method == 'POST':
       id = request.form['id']
-      historic_data = list(machinedata_table.find({"id": id}))
-      historic_data = sorted(historic_data, key=lambda d: d['timestamp'], reverse=True) 
-
+      historic_data = list(machinedata_table.find({"id": id}).sort([("timestamp", -1)]))
       labels = [i['timestamp'].strftime("%d-%b-%Y (%H:%M:%S.%f)") for i in historic_data]
       values = [i['stroom'] for i in historic_data]
-
       return render_template('machinedetail.html', data=historic_data, labels=labels, values=values, machine=id)  
-
-
-    return render_template('machinedetail.html', nodata = True) 
-  
+    else:
+      return render_template('machinedetail.html', nodata = True) 
   else:
-    historic_data = list(machinedata_table.find({"id": id}))
-    historic_data = sorted(historic_data, key=lambda d: d['timestamp'], reverse=True) 
-
+    historic_data = list(machinedata_table.find({"id": id}).sort([("timestamp", -1)]))
     labels = [i['timestamp'].strftime("%d-%b-%Y (%H:%M:%S.%f)") for i in historic_data]
     values = [i['stroom'] for i in historic_data]
     return render_template('machinedetail.html', data=historic_data, labels=labels, values=values, machine=id)

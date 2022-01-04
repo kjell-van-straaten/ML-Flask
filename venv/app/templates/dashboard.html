@@ -28,12 +28,14 @@
                     <th scope="col">ID</th>
                     <th scope="col">Machine</th>
                     <th scope="col">Timestamp</th>
+                    <th scope="col">Time Ago</th>
                 </tr>
             {% for row in data %} 
                 <tr>
                     <th><a class="nav-link" href="/machinedetail?id={{row._id}}">{{row._id}}</a></th>  
                     <th>{{row.machine}}</th>
-                    <th>{{row.last_error}}</th>               
+                    <th>{{row.last_error}}</th> 
+                    <th>{{row.dif}}</th>              
                 </tr>
             {%endfor%}
             </table>
