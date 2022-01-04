@@ -1,8 +1,7 @@
-from collections import namedtuple
-from flask import Flask, render_template, request,g, redirect, session, Response, url_for
+from flask import Flask, render_template, request,g, redirect, session
 from app.functions import *
 from app.classes import *
-from bson import ObjectId, Decimal128
+from bson import ObjectId
 import datetime
 import joblib
 from os.path import join, dirname, realpath
@@ -17,7 +16,8 @@ account_table = db.Accounts
 machinedata_table = db.MachineData
 
 #unpickle the created model
-UPLOADS_PATH = join(dirname(realpath(__file__)), 'static\classifier.pkl')
+print(dirname(realpath(__file__)))
+UPLOADS_PATH = join(dirname(realpath(__file__)), 'static/classifier.pkl')
 classifier = joblib.load(UPLOADS_PATH)
 
 
