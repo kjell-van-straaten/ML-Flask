@@ -4,7 +4,10 @@ from app.functions import *
 from app.classes import *
 from bson import ObjectId, Decimal128
 import datetime
+import joblib
+from os.path import join, dirname, realpath
 
+#initialize flask app
 app= Flask(__name__)
 app.secret_key = 'courgette'
 
@@ -12,6 +15,10 @@ app.secret_key = 'courgette'
 db = connect_db()
 account_table = db.Accounts
 machinedata_table = db.MachineData
+
+#unpickle the created model
+UPLOADS_PATH = join(dirname(realpath(__file__)), 'static\classifier.pkl')
+classifier = joblib.load(UPLOADS_PATH)
 
 
 @app.before_request
@@ -35,13 +42,7 @@ def input_data():
   dateTimeObj = datetime.datetime.now()
   #timestampStr = dateTimeObj.strftime("%d-%b-%Y (%H:%M:%S.%f)")
   
-  #TODO: predictive model based on stroom
-  if int(stroom) > 50:
-    prediction = True
-    #TODO: notify when True
-
-  else:
-    prediction =  False
+  prediction = bool(classifier.predict([[stroom]])[0])
   
   create_record(machinedata_table, [id, machine, prediction, int(stroom), dateTimeObj])
   return "data entry succesfull for machine {}".format(id)
@@ -80,7 +81,6 @@ def raw():
 @app.route('/machinedetail', methods=['GET', 'POST'])
 def machine_detail():
   id = request.args.get('id')
-  print(id)
 
   if id == None:
     if request.method == 'POST':
